@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'  // Added useNavigate
 import axios from 'axios'
-//import { API_URL } from '../utils/api'; // 
 import { API_URL } from "../../utils/api";
 
 const Login = () => {
+  const navigate = useNavigate()  // Add this hook
   const [userType, setUserType] = useState('caregiver')
   const [formData, setFormData] = useState({
     email: '',
@@ -27,11 +27,11 @@ const Login = () => {
     console.log('Attempting login with:', { email: formData.email, userType })
 
     try {
-  const response = await axios.post(`${API_URL}/auth/login`, {
-    email: formData.email,
-    password: formData.password,
-    userType: userType
-  });
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        email: formData.email,
+        password: formData.password,
+        userType: userType
+      });
 
       console.log('Login response:', response.data)
 
@@ -42,8 +42,9 @@ const Login = () => {
 
         alert('Login successful! Redirecting to dashboard...')
 
+        // Changed from window.location.href to navigate
         setTimeout(() => {
-          window.location.href = '/dashboard'
+          navigate('/dashboard')
         }, 1000)
       } else {
         setError('Login failed. Please try again.')
