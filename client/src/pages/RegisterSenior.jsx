@@ -1,12 +1,14 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { API_URL } from "../../utils/api";
 
 const RegisterSenior = () => {
-  const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const [formData, setFormData] = useState({
     guardianName: '',
     email: '',
@@ -26,18 +28,18 @@ const RegisterSenior = () => {
     budget: '',
     additionalInfo: '',
     password: ''
-  })
+  });
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    setError('')
-  }
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setError('');
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
       const dataToSend = {
@@ -48,27 +50,39 @@ const RegisterSenior = () => {
           state: formData.state,
           pincode: formData.pincode
         }
-      }
+      };
 
       const response = await axios.post(`${API_URL}/auth/register/senior`, dataToSend);
-      
-      alert(response.data.message || 'Registration submitted successfully! We will contact you soon with suitable caregiver matches.')
-      
-      // Redirect to login page after successful registration
-      setTimeout(() => {
-        window.location.href = '/login'
-      }, 1000)
-    } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.')
-      console.error('Registration error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
+      if (response.data.success) {
+        setShowSuccess(true);
+
+        // Redirect after 3 seconds
+        setTimeout(() => {
+          navigate('/login'); // ✅ Correct React Router navigation
+        }, 3000);
+      } else {
+        setError(response.data.message || 'Registration failed. Please try again.');
+      }
+
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      console.error('Registration error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4 max-w-3xl">
+          {showSuccess && (
+          <div className="fixed top-0 left-0 right-0 bg-green-500 text-white p-4 text-center z-50">
+            <h3 className="text-xl font-bold">✅ Registration Successful!</h3>
+            <p>Your profile is under review. You'll be notified within 24-48 hours.</p>
+            <p className="text-sm mt-2">Redirecting to login...</p>
+          </div>
+        )}
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Find Care for Your Loved One</h1>
           <p className="text-gray-600">Tell us about your care needs and we'll help you find the perfect caregiver</p>
