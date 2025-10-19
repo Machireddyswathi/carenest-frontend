@@ -132,21 +132,21 @@ const RegisterCaregiver = () => {
 
       console.log('Registration response:', response.data)
 
-      alert(response.data.message || 'Registration submitted successfully! We will verify your documents and contact you soon.')
+      alert(response.data.message || 'Registration successful!\n\nYour profile will be reviewed within 24-48 hours.\n\nYou will receive an email once approved.\n\nRedirecting to login...')
       
       // Redirect to login page after successful registration
       setTimeout(() => {
-        window.location.href = '/login'
-      }, 1000)
-    } catch (err) {
-      console.error('Registration error:', err)
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.'
-      setError(errorMessage)
-      alert('Error: ' + errorMessage)
-    } finally {
-      setLoading(false)
-    }
+      navigate('/login');
+    }, 1500);
+  } catch (err) {
+    console.error('Registration error:', err);
+    const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.';
+    setError(errorMessage);
+    alert('Error: ' + errorMessage);
+  } finally {
+    setLoading(false);
   }
+}
 
   const nextStep = () => {
     // Validate current step before moving to next
