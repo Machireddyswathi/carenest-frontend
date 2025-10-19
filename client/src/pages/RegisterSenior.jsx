@@ -42,43 +42,42 @@ const RegisterSenior = () => {
     setError('');
 
     try {
-      const dataToSend = {
-        ...formData,
-        address: {
-          street: formData.address,
-          city: formData.city,
-          state: formData.state,
-          pincode: formData.pincode
-        }
-      };
+      // Send data directly without restructuring
+      const response = await axios.post(`${API_URL}/auth/register/senior`, formData);
 
-      const response = await axios.post(`${API_URL}/auth/register/senior`, dataToSend);
+      console.log('Registration response:', response.data);
 
       if (response.data.success) {
         setShowSuccess(true);
 
+        // Show success message
+        alert('✅ Registration Successful!\n\nYou can now search for caregivers.\n\nRedirecting to login...');
+
         // Redirect after 3 seconds
         setTimeout(() => {
-          navigate('/login'); // ✅ Correct React Router navigation
+          navigate('/login');
         }, 3000);
       } else {
         setError(response.data.message || 'Registration failed. Please try again.');
       }
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
       console.error('Registration error:', err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.';
+      setError(errorMessage);
+      alert('Error: ' + errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4 max-w-3xl">
-          {showSuccess && (
+        {showSuccess && (
           <div className="fixed top-0 left-0 right-0 bg-green-500 text-white p-4 text-center z-50">
             <h3 className="text-xl font-bold">✅ Registration Successful!</h3>
-            <p>Your profile is under review. You'll be notified within 24-48 hours.</p>
+            <p>You can now search for caregivers.</p>
             <p className="text-sm mt-2">Redirecting to login...</p>
           </div>
         )}
@@ -91,7 +90,17 @@ const RegisterSenior = () => {
         <form onSubmit={handleSubmit} className="card p-8 space-y-6">
           {error && (
             <div className="bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
-              {error}
+              <p className="font-semibold">Registration Error:</p>
+              <p>{error}</p>
+            </div>
+          )}
+
+          {loading && (
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-700">
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-700 mr-3"></div>
+                <p>Submitting your information... Please wait.</p>
+              </div>
             </div>
           )}
 
@@ -131,6 +140,8 @@ const RegisterSenior = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   className="input-field"
+                  pattern="[0-9]{10}"
+                  placeholder="10-digit mobile number"
                   required
                 />
               </div>
@@ -152,6 +163,20 @@ const RegisterSenior = () => {
                   <option value="relative">Other Relative</option>
                   <option value="self">Self</option>
                 </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="input-field"
+                  minLength="6"
+                  placeholder="Create a password (min 6 characters)"
+                  required
+                />
               </div>
             </div>
           </div>
@@ -181,6 +206,7 @@ const RegisterSenior = () => {
                   onChange={handleChange}
                   className="input-field"
                   min="50"
+                  max="120"
                   required
                 />
               </div>
@@ -194,6 +220,7 @@ const RegisterSenior = () => {
                 onChange={handleChange}
                 className="input-field"
                 rows="3"
+                placeholder="Full address"
                 required
               ></textarea>
             </div>
@@ -231,6 +258,8 @@ const RegisterSenior = () => {
                   value={formData.pincode}
                   onChange={handleChange}
                   className="input-field"
+                  pattern="[0-9]{6}"
+                  placeholder="6-digit pincode"
                   required
                 />
               </div>
@@ -282,6 +311,7 @@ const RegisterSenior = () => {
                   value={formData.startDate}
                   onChange={handleChange}
                   className="input-field"
+                  min={new Date().toISOString().split('T')[0]}
                   required
                 />
               </div>
@@ -294,7 +324,7 @@ const RegisterSenior = () => {
                   value={formData.budget}
                   onChange={handleChange}
                   className="input-field"
-                  min="0"
+                  min="100"
                   placeholder="e.g., 300"
                   required
                 />
@@ -335,23 +365,8 @@ const RegisterSenior = () => {
                 className="input-field"
                 rows="4"
                 placeholder="Any other information that would help us find the right caregiver..."
-              >              </textarea>
+              ></textarea>
             </div>
-          </div>
-
-          {/* Password Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="input-field"
-              minLength="6"
-              placeholder="Create a password (min 6 characters)"
-              required
-            />
           </div>
 
           {/* Terms and Submit */}
@@ -363,8 +378,22 @@ const RegisterSenior = () => {
               </label>
             </div>
 
-            <button type="submit" className="w-full btn-primary text-lg" disabled={loading}>
-              {loading ? 'Submitting...' : 'Find Caregivers'}
+            <button 
+              type="submit" 
+              className="w-full btn-primary text-lg" 
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Submitting...
+                </span>
+              ) : (
+                'Find Caregivers'
+              )}
             </button>
           </div>
         </form>
